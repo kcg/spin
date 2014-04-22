@@ -62,13 +62,8 @@ logger = logging.getLogger(__name__)
 logging.basicConfig()
 logger.level = logging.INFO
 
-class interface(QtGui.QWidget):
-    def __init__(
-        self,
-        docopt_args=None
-	):
-        self.docopt_args=docopt_args
-        super(interface, self).__init__()
+class spinner():
+    def __init__(self,):
         logger.info("running spin")
         # engage stylus proximity control
         self.stylusProximityControlOn()
@@ -77,99 +72,6 @@ class interface(QtGui.QWidget):
         self.displayPositionControlOn()
         self.selectionModeCoord = (0,0)
         self.selectionPositionCoord = (0,0)
-        if not (docopt_args["--nogui"] or docopt_args["--fancygui"]):
-            # create buttons
-            buttonsList = []
-            # button: tablet mode
-            buttonModeTablet = QtGui.QPushButton('tablet mode', self)
-            buttonModeTablet.clicked.connect(self.engageModeTablet)
-            buttonsList.append(buttonModeTablet)
-            # button: laptop mode
-            buttonModeLaptop = QtGui.QPushButton('laptop mode', self)
-            buttonModeLaptop.clicked.connect(self.engageModeLaptop)
-            buttonsList.append(buttonModeLaptop)
-            # button: left
-            buttonLeft = QtGui.QPushButton('left', self)
-            buttonLeft.clicked.connect(self.engageLeft)
-            buttonsList.append(buttonLeft)
-            # button: right
-            buttonRight = QtGui.QPushButton('right', self)
-            buttonRight.clicked.connect(self.engageRight)
-            buttonsList.append(buttonRight)
-            # button: inverted
-            buttonInverted = QtGui.QPushButton('inverted', self)
-            buttonInverted.clicked.connect(self.engageInverted)
-            buttonsList.append(buttonInverted)
-            # button: normal
-            buttonNormal = QtGui.QPushButton('normal', self)
-            buttonNormal.clicked.connect(self.engageNormal)
-            buttonsList.append(buttonNormal)
-            # button: touchscreen on
-            buttonTouchscreenOn = QtGui.QPushButton('touchscreen on', self)
-            buttonTouchscreenOn.clicked.connect(self.engageTouchscreenOn)
-            buttonsList.append(buttonTouchscreenOn)
-            # button: touchscreen off
-            buttonTouchscreenOff = QtGui.QPushButton('touchscreen off', self)
-            buttonTouchscreenOff.clicked.connect(self.engageTouchscreenOff)
-            buttonsList.append(buttonTouchscreenOff)
-            # button: touchpad on
-            buttonTouchpadOn = QtGui.QPushButton('touchpad on', self)
-            buttonTouchpadOn.clicked.connect(self.engageTouchpadOn)
-            buttonsList.append(buttonTouchpadOn)
-            # button: touchpad off
-            buttonTouchpadOff = QtGui.QPushButton('touchpad off', self)
-            buttonTouchpadOff.clicked.connect(self.engageTouchpadOff)
-            buttonsList.append(buttonTouchpadOff)
-            # button: nipple on
-            buttonNippleOn = QtGui.QPushButton('nipple on', self)
-            buttonNippleOn.clicked.connect(self.engageNippleOn)
-            buttonsList.append(buttonNippleOn)
-            # button: nipple off
-            buttonNippleOff = QtGui.QPushButton('nipple off', self)
-            buttonNippleOff.clicked.connect(self.engageNippleOff)
-            buttonsList.append(buttonNippleOff)
-            # button: stylus proximity monitoring on
-            buttonStylusProximityControlOn = QtGui.QPushButton('stylus proximity monitoring on', self)
-            buttonStylusProximityControlOn.clicked.connect(self.engageStylusProximityControlOn)
-            buttonsList.append(buttonStylusProximityControlOn)
-            # button: stylus proximity monitoring off
-            buttonStylusProximityControlOff = QtGui.QPushButton('stylus proximity monitoring off', self)
-            buttonStylusProximityControlOff.clicked.connect(self.engageStylusProximityControlOff)
-            buttonsList.append(buttonStylusProximityControlOff)
-            # button: display position monitoring on
-            buttonDisplayPositionControlOn = QtGui.QPushButton('display position monitoring on', self)
-            buttonDisplayPositionControlOn.clicked.connect(self.engageDisplayPositionControlOn)
-            buttonsList.append(buttonDisplayPositionControlOn)
-            # button: display position monitoring off
-            buttonDisplayPositionControlOff = QtGui.QPushButton('display position monitoring off', self)
-            buttonDisplayPositionControlOff.clicked.connect(self.engageDisplayPositionControlOff)
-            buttonsList.append(buttonDisplayPositionControlOff)
-            # set button dimensions
-            buttonsWidth=250
-            buttonsHeight=50
-            for button in buttonsList:
-                button.setFixedSize(buttonsWidth, buttonsHeight)
-            # set layout
-            vbox = QtGui.QVBoxLayout()
-            vbox.addStretch(1)
-            for button in buttonsList:
-                vbox.addWidget(button)
-                vbox.addStretch(1)	
-            self.setLayout(vbox)
-            # window
-            self.setWindowTitle('spin')
-            # set window position
-            self.move(0, 0)
-            self.show()
-        elif docopt_args["--nogui"]:
-            logger.info("non-GUI mode")
-        elif docopt_args["--fancygui"]:
-            logger.info("fancy-GUI mode")
-    def closeEvent(self, event):
-        logger.info("stopping spin")
-        self.stylusProximityControlOff()
-        self.engageDisplayPositionControlOff()
-        self.deleteLater() 
     def displayLeft(self):
         logger.info("changing display to left")
         os.system('xrandr -o left')
@@ -256,55 +158,155 @@ class interface(QtGui.QWidget):
     def displayPositionControlOff(self):
         logger.info("changing display position control to off")
         self.processDisplayPositionControl.terminate()
+
+class interface(QtGui.QWidget):
+    def __init__(
+        self,
+        docopt_args=None
+	):
+        self.docopt_args=docopt_args
+        super(interface, self).__init__()
+        self.spinner = spinner()
+        if not (docopt_args["--nogui"]):
+            # create buttons
+            buttonsList = []
+            # button: tablet mode
+            buttonModeTablet = QtGui.QPushButton('tablet mode', self)
+            buttonModeTablet.clicked.connect(self.engageModeTablet)
+            buttonsList.append(buttonModeTablet)
+            # button: laptop mode
+            buttonModeLaptop = QtGui.QPushButton('laptop mode', self)
+            buttonModeLaptop.clicked.connect(self.engageModeLaptop)
+            buttonsList.append(buttonModeLaptop)
+            # button: left
+            buttonLeft = QtGui.QPushButton('left', self)
+            buttonLeft.clicked.connect(self.engageLeft)
+            buttonsList.append(buttonLeft)
+            # button: right
+            buttonRight = QtGui.QPushButton('right', self)
+            buttonRight.clicked.connect(self.engageRight)
+            buttonsList.append(buttonRight)
+            # button: inverted
+            buttonInverted = QtGui.QPushButton('inverted', self)
+            buttonInverted.clicked.connect(self.engageInverted)
+            buttonsList.append(buttonInverted)
+            # button: normal
+            buttonNormal = QtGui.QPushButton('normal', self)
+            buttonNormal.clicked.connect(self.engageNormal)
+            buttonsList.append(buttonNormal)
+            # button: touchscreen on
+            buttonTouchscreenOn = QtGui.QPushButton('touchscreen on', self)
+            buttonTouchscreenOn.clicked.connect(self.engageTouchscreenOn)
+            buttonsList.append(buttonTouchscreenOn)
+            # button: touchscreen off
+            buttonTouchscreenOff = QtGui.QPushButton('touchscreen off', self)
+            buttonTouchscreenOff.clicked.connect(self.engageTouchscreenOff)
+            buttonsList.append(buttonTouchscreenOff)
+            # button: touchpad on
+            buttonTouchpadOn = QtGui.QPushButton('touchpad on', self)
+            buttonTouchpadOn.clicked.connect(self.engageTouchpadOn)
+            buttonsList.append(buttonTouchpadOn)
+            # button: touchpad off
+            buttonTouchpadOff = QtGui.QPushButton('touchpad off', self)
+            buttonTouchpadOff.clicked.connect(self.engageTouchpadOff)
+            buttonsList.append(buttonTouchpadOff)
+            # button: nipple on
+            buttonNippleOn = QtGui.QPushButton('nipple on', self)
+            buttonNippleOn.clicked.connect(self.engageNippleOn)
+            buttonsList.append(buttonNippleOn)
+            # button: nipple off
+            buttonNippleOff = QtGui.QPushButton('nipple off', self)
+            buttonNippleOff.clicked.connect(self.engageNippleOff)
+            buttonsList.append(buttonNippleOff)
+            # button: stylus proximity monitoring on
+            buttonStylusProximityControlOn = QtGui.QPushButton('stylus proximity monitoring on', self)
+            buttonStylusProximityControlOn.clicked.connect(self.engageStylusProximityControlOn)
+            buttonsList.append(buttonStylusProximityControlOn)
+            # button: stylus proximity monitoring off
+            buttonStylusProximityControlOff = QtGui.QPushButton('stylus proximity monitoring off', self)
+            buttonStylusProximityControlOff.clicked.connect(self.engageStylusProximityControlOff)
+            buttonsList.append(buttonStylusProximityControlOff)
+            # button: display position monitoring on
+            buttonDisplayPositionControlOn = QtGui.QPushButton('display position monitoring on', self)
+            buttonDisplayPositionControlOn.clicked.connect(self.engageDisplayPositionControlOn)
+            buttonsList.append(buttonDisplayPositionControlOn)
+            # button: display position monitoring off
+            buttonDisplayPositionControlOff = QtGui.QPushButton('display position monitoring off', self)
+            buttonDisplayPositionControlOff.clicked.connect(self.engageDisplayPositionControlOff)
+            buttonsList.append(buttonDisplayPositionControlOff)
+            # set button dimensions
+            buttonsWidth=250
+            buttonsHeight=50
+            for button in buttonsList:
+                button.setFixedSize(buttonsWidth, buttonsHeight)
+            # set layout
+            vbox = QtGui.QVBoxLayout()
+            vbox.addStretch(1)
+            for button in buttonsList:
+                vbox.addWidget(button)
+                vbox.addStretch(1)	
+            self.setLayout(vbox)
+            # window
+            self.setWindowTitle('spin')
+            # set window position
+            self.move(0, 0)
+            self.show()
+        elif docopt_args["--nogui"]:
+            logger.info("non-GUI mode")
+    def closeEvent(self, event):
+        logger.info("stopping spin")
+        self.spinner.stylusProximityControlOff()
+        self.engageDisplayPositionControlOff()
+        self.deleteLater()
     def engageModeTablet(self):
         logger.info("engaging mode tablet")
-        self.displayLeft()
-        self.touchscreenLeft()
-        self.touchpadOff()
-        self.nippleOff()
+        self.spinner.displayLeft()
+        self.spinner.touchscreenLeft()
+        self.spinner.touchpadOff()
+        self.spinner.nippleOff()
     def engageModeLaptop(self):
         logger.info("engaging mode laptop")
-        self.displayNormal()
-        self.touchscreenNormal()
-        self.touchscreenOn()
-        self.touchpadOn()
-        self.nippleOn()
+        self.spinner.displayNormal()
+        self.spinner.touchscreenNormal()
+        self.spinner.touchscreenOn()
+        self.spinner.touchpadOn()
+        self.spinner.nippleOn()
     def engageLeft(self):
         logger.info("engaging mode left")
-        self.displayLeft()
-        self.touchscreenLeft()
+        self.spinner.displayLeft()
+        self.spinner.touchscreenLeft()
     def engageRight(self):
         logger.info("engaging mode right")
-        self.displayRight()
-        self.touchscreenRight()
+        self.spinner.displayRight()
+        self.spinner.touchscreenRight()
     def engageInverted(self):
         logger.info("engaging mode inverted")
-        self.displayInverted()
-        self.touchscreenInverted()
+        self.spinner.displayInverted()
+        self.spinner.touchscreenInverted()
     def engageNormal(self):
         logger.info("engaging mode normal")
-        self.displayNormal()
-        self.touchscreenNormal()
+        self.spinner.displayNormal()
+        self.spinner.touchscreenNormal()
     def engageTouchscreenOn(self):
-        self.touchscreenOn()
+        self.spinner.touchscreenOn()
     def engageTouchscreenOff(self):
-        self.touchscreenOff()
+        self.spinner.touchscreenOff()
     def engageTouchpadOn(self):
-        self.touchpadOn()
+        self.spinner.touchpadOn()
     def engageTouchpadOff(self):
-        self.touchpadOff()
+        self.spinner.touchpadOff()
     def engageNippleOn(self):
-        self.nippleOn()
+        self.spinner.nippleOn()
     def engageNippleOff(self):
-        self.nippleOff()
+        self.spinner.nippleOff()
     def engageStylusProximityControlOn(self):
-        self.stylusProximityControlOn()
+        self.spinner.stylusProximityControlOn()
     def engageStylusProximityControlOff(self):
-        self.stylusProximityControlOff()
+        self.spinner.stylusProximityControlOff()
     def engageDisplayPositionControlOn(self):
-        self.displayPositionControlOn()
+        self.spinner.displayPositionControlOn()
     def engageDisplayPositionControlOff(self):
-        self.displayPositionControlOff()
+        self.spinner.displayPositionControlOff()
 def main(docopt_args):
     application = QtGui.QApplication(sys.argv)
     interface1 = interface(docopt_args)
