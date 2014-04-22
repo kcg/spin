@@ -159,13 +159,13 @@ class spinner():
         logger.info("changing display position control to off")
         self.processDisplayPositionControl.terminate()
 
-class interface(QtGui.QWidget):
+class qtinterface(QtGui.QWidget):
     def __init__(
         self,
         docopt_args=None
 	):
         self.docopt_args=docopt_args
-        super(interface, self).__init__()
+        super(qtinterface, self).__init__()
         self.spinner = spinner()
         if not (docopt_args["--nogui"]):
             # create buttons
@@ -307,10 +307,135 @@ class interface(QtGui.QWidget):
         self.spinner.displayPositionControlOn()
     def engageDisplayPositionControlOff(self):
         self.spinner.displayPositionControlOff()
+        
+class fancyinterface(wx.Frame):
+    def __init__(self, parent, id, title):
+        wx.Frame.__init__(self, parent, id, title,
+                        style=wx.FRAME_SHAPED |
+                        wx.STAY_ON_TOP |
+                        wx.FRAME_NO_TASKBAR)
+        self.fieldbit = wx.Bitmap('field.png', wx.BITMAP_TYPE_PNG)
+        self.selbit = wx.Bitmap('selection.png', wx.BITMAP_TYPE_PNG)
+        self.delta = ((0, 0))
+        self.spinner = spinner()
+        w = self.fieldbit.GetWidth()
+        h = self.fieldbit.GetHeight()
+        self.SetClientSize((w, h))
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
+        self.Bind(wx.EVT_MOTION, self.OnMouseMove)
+        dc = wx.ClientDC(self)
+        dc.DrawBitmap(self.fieldbit, 0, 0, True)
+        self.sel1_x = 36
+        self.sel1_y = 7
+        self.sel2_x = 120
+        self.sel2_y = 14
+        dc.DrawBitmap(self.selbit, self.sel1_x, self.sel1_y, True)
+        dc.DrawBitmap(self.selbit, self.sel2_x, self.sel2_y, True)
+        self.SetFramePosition()
+        self.Show(True)
+    def SetFramePosition(self):
+        display_x, display_y = wx.GetDisplaySize()
+        x, y = self.GetSize()
+        self.Move((display_x-x-10, display_y-y-10))
+    def IsInRadius(self, pos, checkpos):
+        distance = ((pos[0]-checkpos[0])**2+(pos[1]-checkpos[1])**2)**(0.5)
+        return distance < 14
+    def OnLeftDown(self, event):
+        pos = event.GetPosition()
+        #Close
+        if self.IsInRadius(pos,(185,17)):
+			logger.info("stopping spin")
+			self.spinner.stylusProximityControlOff()
+			self.spinner.displayPositionControlOff()
+			self.Close()
+        #Up
+        if self.IsInRadius(pos,(56,27)):
+            self.engageNormal()
+            self.spinner.touchscreenNormal()
+        #Down
+        if self.IsInRadius(pos,(56,88)):
+            self.engageInverted()
+            self.spinner.touchscreenInverted()
+        #Left
+        if self.IsInRadius(pos,(26,58)):
+            self.engageLeft()
+            self.spinner.touchscreenLeft()
+        #Right
+        if self.IsInRadius(pos,(86,58)):
+            self.engageRight()
+            self.spinner.touchscreenRight()
+        #Set laptop mode
+        if self.IsInRadius(pos,(140,34)):
+            self.engageModeLaptop()
+        #Set tablet mode
+        if self.IsInRadius(pos,(140,82)):
+            self.engageModeTablet()        
+        x, y = self.ClientToScreen(event.GetPosition())
+        ox, oy = self.GetPosition()
+        dx = x - ox
+        dy = y - oy
+        self.delta = ((dx, dy))        
+    def OnMouseMove(self, event):
+        if event.Dragging() and event.LeftIsDown():
+            x, y = self.ClientToScreen(event.GetPosition())
+            fp = (x - self.delta[0], y - self.delta[1])
+            self.Move(fp)
+    def OnPaint(self, event):
+        dc = wx.PaintDC(self)
+        dc.DrawBitmap(self.fieldbit, 0, 0, True)
+        dc.DrawBitmap(self.selbit, self.sel1_x, self.sel1_y, True)
+        dc.DrawBitmap(self.selbit, self.sel2_x, self.sel2_y, True)       
+    def engageLeft(self):
+        self.sel1_x = 6
+        self.sel1_y = 38
+        self.spinner.displayLeft()
+        self.OnPaint(self)
+    def engageRight(self):
+        self.sel1_x = 66
+        self.sel1_y = 38
+        self.spinner.displayRight()
+        self.OnPaint(self)
+    def engageInverted(self):
+        self.sel1_x = 36
+        self.sel1_y = 68
+        self.spinner.displayInverted()
+        self.OnPaint(self)
+    def engageNormal(self):
+        self.sel1_x = 36
+        self.sel1_y = 7
+        self.spinner.displayNormal()
+        self.OnPaint(self)
+    def engageModeTablet(self):
+        self.sel2_x = 120
+        self.sel2_y = 62
+        self.engageLeft()
+        self.spinner.touchscreenLeft()
+        self.spinner.touchpadOff()
+        self.spinner.nippleOff()
+        self.spinner.stylusProximityControlOn()  
+        self.OnPaint(self)
+    def engageModeLaptop(self):
+        self.sel2_x = 120
+        self.sel2_y = 14
+        self.engageNormal()
+        self.spinner.touchscreenNormal()
+        self.spinner.touchscreenOn()
+        self.spinner.touchpadOn()
+        self.spinner.nippleOn()
+        self.spinner.stylusProximityControlOff()
+        self.OnPaint(self)
+            
 def main(docopt_args):
-    application = QtGui.QApplication(sys.argv)
-    interface1 = interface(docopt_args)
-    sys.exit(application.exec_())
+	if not docopt_args["--fancygui"]:
+		application = QtGui.QApplication(sys.argv)
+		interface1 = qtinterface(docopt_args)
+		sys.exit(application.exec_())
+	else:
+		application = wx.App()
+		fancyinterface(None, -1, '')
+		application.MainLoop()
+		
 if __name__ == '__main__':
     args = docopt(__doc__)
     main(args)
