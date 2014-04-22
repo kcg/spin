@@ -7,15 +7,17 @@ Usage:
     spin.py
     spin.py -h | --help
     spin.py --nogui
+    spin.py --fancygui
 Options:
     -h,--help      : show this help message
     --nogui        : non-GUI mode
+    --fancygui     : fancy-GUY mode using wx
 """
 ################################################################################
 #                                                                              #
 # spin                                                                         #
 #                                                                              #
-# version: 2014-01-09T0119                                                     #
+# version: 2014-04-22T1544                                                     #
 #                                                                              #
 ################################################################################
 #                                                                              #
@@ -53,6 +55,7 @@ import socket
 import time
 from PyQt4 import QtGui
 import logging
+import wx
 
 # logging
 logger = logging.getLogger(__name__)
@@ -69,10 +72,12 @@ class interface(QtGui.QWidget):
         logger.info("running spin")
         # engage stylus proximity control
         self.stylusProximityControlOn()
-	# engage display position control
-	self.displayPositionStatus = "laptop"
+        # engage display position control
+        self.displayPositionStatus = "laptop"
         self.displayPositionControlOn()
-        if not docopt_args["--nogui"]:
+        self.selectionModeCoord = (0,0)
+        self.selectionPositionCoord = (0,0)
+        if not (docopt_args["--nogui"] or docopt_args["--fancygui"]):
             # create buttons
             buttonsList = []
             # button: tablet mode
@@ -152,16 +157,18 @@ class interface(QtGui.QWidget):
                 vbox.addStretch(1)	
             self.setLayout(vbox)
             # window
-	    self.setWindowTitle('spin')
+            self.setWindowTitle('spin')
             # set window position
-	    self.move(0, 0)
+            self.move(0, 0)
             self.show()
-	elif docopt_args["--nogui"]:
+        elif docopt_args["--nogui"]:
             logger.info("non-GUI mode")
+        elif docopt_args["--fancygui"]:
+            logger.info("fancy-GUI mode")
     def closeEvent(self, event):
         logger.info("stopping spin")
         self.stylusProximityControlOff()
-	self.engageDisplayPositionControlOff()
+        self.engageDisplayPositionControlOff()
         self.deleteLater() 
     def displayLeft(self):
         logger.info("changing display to left")
@@ -212,47 +219,47 @@ class interface(QtGui.QWidget):
             self.stylusProximityStatus = subprocess.check_output(stylusProximityCommand, shell=True).lower().rstrip()
             if (self.stylusProximityStatus == "out") and (self.previousStylusProximityStatus != "out"):
                 logger.info("stylus inactive")
-		self.touchscreenOn()
+                self.touchscreenOn()
             elif (self.stylusProximityStatus == "in") and (self.previousStylusProximityStatus != "in"):
                 logger.info("stylus active")
-		self.touchscreenOff()
-	    self.previousStylusProximityStatus = self.stylusProximityStatus
+                self.touchscreenOff()
+            self.previousStylusProximityStatus = self.stylusProximityStatus
             time.sleep(0.25)
     def stylusProximityControlOn(self):
         logger.info("changing stylus proximity control to on")
-	self.processStylusProximityControl = Process(target=self.stylusProximityControl)
-	self.processStylusProximityControl.start()
+        self.processStylusProximityControl = Process(target=self.stylusProximityControl)
+        self.processStylusProximityControl.start()
     def stylusProximityControlOff(self):
         logger.info("changing stylus proximity control to off")
-	self.processStylusProximityControl.terminate()
+        self.processStylusProximityControl.terminate()
     def displayPositionControl(self):
         socketACPI = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         socketACPI.connect("/var/run/acpid.socket")
-	logger.info("display position is {a1}".format(a1=self.displayPositionStatus))
+        logger.info("display position is {a1}".format(a1=self.displayPositionStatus))
 	while True:
             eventACPI = socketACPI.recv(4096)
             if eventACPI == 'ibm/hotkey HKEY 00000080 000060c0\n':
                 logger.info("display position change")
                 if self.displayPositionStatus == "laptop":
                     self.engageModeTablet()
-		    self.displayPositionStatus = "tablet"
-		    logger.info("display position is {a1}".format(a1=self.displayPositionStatus))
-		elif self.displayPositionStatus == "tablet":
+                    self.displayPositionStatus = "tablet"
+                    logger.info("display position is {a1}".format(a1=self.displayPositionStatus))
+                elif self.displayPositionStatus == "tablet":
                     self.engageModeLaptop()
-		    self.displayPositionStatus = "laptop"
-		    logger.info("display position is {a1}".format(a1=self.displayPositionStatus))
+                    self.displayPositionStatus = "laptop"
+                    logger.info("display position is {a1}".format(a1=self.displayPositionStatus))
             time.sleep(0.25)
     def displayPositionControlOn(self):
         logger.info("changing display position control to on")
-	self.processDisplayPositionControl = Process(target=self.displayPositionControl)
-	self.processDisplayPositionControl.start()
+        self.processDisplayPositionControl = Process(target=self.displayPositionControl)
+        self.processDisplayPositionControl.start()
     def displayPositionControlOff(self):
         logger.info("changing display position control to off")
-	self.processDisplayPositionControl.terminate()
+        self.processDisplayPositionControl.terminate()
     def engageModeTablet(self):
         logger.info("engaging mode tablet")
         self.displayLeft()
-	self.touchscreenLeft()
+        self.touchscreenLeft()
         self.touchpadOff()
         self.nippleOff()
     def engageModeLaptop(self):
