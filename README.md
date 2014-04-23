@@ -11,7 +11,7 @@ a small utility to assist in setting usage modes of laptop-tablet devices
 - docopts
     - Spin is dependent on the module [```docopt```](http://docopt.org/). ```docopt``` can be used directly by having [docopt.py](https://raw.github.com/wdbm/spin/master/docopt.py) in the same directory as spin.py or it can be installed: ```pip install docopt```
 
-This utility has been tested using a Lenovo ThinkPad S1 Yoga running Ubuntu 13.10.
+This utility has been tested using a Lenovo ThinkPad S1 Yoga running Ubuntu 14.04.
 
 ### run
 
@@ -22,5 +22,9 @@ Spin can be run in its default graphical mode or in a non-graphical mode. The gr
 while the non-graphical mode is engaged by using the command line argument ```--nogui```:
 
     spin.py --nogui
+    
+This fork of spin features a fancy gui mode by adding ```--fancygui``` as a command line argument:
+
+    spin.py --fancygui
 
 By default, the utility disables the touchscreen on detecting the stylus in proximity and it changes between the laptop and tablet modes on detecting toggling between the laptop and tablet usage configurations. These default behaviours are provided by both the graphical and non-graphical modes of this utility. Spin should be started in the laptop usage configuration.
